@@ -1,36 +1,64 @@
-import React, { createContext, useState, useEffect } from 'react';
-import { chartTracksGet, trackSearch } from '../constants'; 
+import React, { createContext, useState, useEffect } from "react";
+import { chartTracksGet, trackSearch } from "../constants";
 
 // paso °1
 export const SongsContext = createContext();
 
 const SongsContextProvider = ({ children }) => {
-    // estados -> useState
-    const [props1, setProps] = useState();
-    const [props2, setProps2] = useState();
-    const [props3, setProps3] = useState();
+  // estados -> useState
+  const [doneFetch, setDoneFetch] = useState();
+  const [currentQTrack, setCurrentQTrack] = useState("");
+  const [text, setText] = useState("Top Songs");
+  const [tracks, setTracks] = useState([]);
 
-   // ciclos de vida -> useEffect 
+  // ciclos de vida -> useEffect (mount, update, willunmount/destroy)
+  useEffect(() => {
+    getTopTracks();
+  }, []);
 
-   // funciones lógicas
-   const getTopTracks = () => {
+  // funciones lógicas
+  const getTopTracks = () => {
+    fetch(chartTracksGet())
+      .then((res) => res.json())
+      .then((data) => {
+        setDoneFetch(true);
+        setTracks(data.message.body.track_list);
+      })
+      .catch((err) => console.log(err));
+  };
 
-   }; 
+  const getTracks = (q_track) => {
+    fetch(trackSearch(q_track))
+      .then((res) => res.json())
+      .then((data) => {
+        const { track_list } = data.message.body;
+        setDoneFetch(true);
+        setText(track_list.length ? "Results" : "No Results");
+        setTracks(track_list);
+      })
+      .catch((err) => console.log(err));
+  };
 
-   const getTracks = q_track => {
-
-   };
-
-   const validateQTrack = () => {
-
-   };
+  const validateQTrack = (
+    e,
+    q_track = document.querySelector("#q_track").value.toLowerCase().trim()
+  ) => {
+    if (e.type === "keypress" && e.key !== "Enter") return;
+    const words = q_track.match(/\w+/g);
+    q_track = words && words.join(" ");
+    if (q_track && q_track !== currentQTrack) {
+      setCurrentQTrack(q_track);
+      setDoneFetch(false);
+      getTracks(q_track);
+    }
+  };
 
   // paso ° 2
   return (
-    <SongsContext.Provider value={{props1, props2, props3, getTopTracks, getTracks, validateQTrack }}>
-        {children}
+    <SongsContext.Provider value={{ doneFetch, text, tracks, validateQTrack }}>
+      {children}
     </SongsContext.Provider>
-  )
-}
+  );
+};
 
 export default SongsContextProvider;
