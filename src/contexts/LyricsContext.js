@@ -35,7 +35,7 @@ const LyricsContextProvider = ({ children }) => {
       .then((data) => {
         const { body } = data.message;
         setDoneFetchLyrics(true);
-        !Array.isArray(body) && setLyrics(body.lyrics.lyrics.body);
+        !Array.isArray(body) && setLyrics(body.lyrics.lyrics_body);
       })
       .catch((err) => console.log(err));
   };
